@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal</title>
+    <link rel="stylesheet" href="https://unpkg.com/xterm/css/xterm.css" />
+    <script src="https://unpkg.com/xterm/lib/xterm.js"></script>
+    <script src="https://unpkg.com/xterm-addon-fit/lib/xterm-addon-fit.js"></script>
+    <style>
+        #terminal { 
+            width: 100%; 
+            height: 85vh; 
+        }
+        #backButton {
+            margin: 10px;
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="terminal"></div>
+    <button id="backButton" onclick="window.location.href='index.html'">返回app主页面</button>
+    <script>
+        const { invoke } = window.__TAURI__.tauri;
+
+        let term;
+        let currentConnection;
+        let currentWorkingDirectory = '/';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM fully loaded');
+            currentConnection = JSON.parse(localStorage.getItem('currentConnection'));
+            console.log('Connection info:', currentConnection);
+            if (currentConnection) {
+                initializeTerminal();
+            } else {
+                console.error('No connection info found');
+            }
+        });
+
+        function initializeTerminal() {
+            term = new Terminal({
+                cursorBlink: true,
+                scrollback: 1000,
+                fontSize: 14
+            });
+           
+            const fitAddon = new FitAddon.FitAddon();
+            term.loadAddon(fitAddon);
+          
+            term.open(document.getElementById('terminal'));
+            fitAddon.fit();
+            window.addEventListener('resize', () => fitAddon.fit());
+
+            term.writeln('Welcome to the terminal! Type your commands below:');
+            term.write(`${currentWorkingDirectory}$ `);
+
+            let currentLine = '';
+            term.onKey(({ key, domEvent }) => {
+                const printable = !domEvent.altKey && !domEvent.ctrlKey && !domEvent.metaKey;
+                if (domEvent.keyCode === 13) { // Enter
+                    term.write('\r\n');
+                    executeCommand(currentLine);
+                    currentLine = '';
+                } else if (domEvent.keyCode === 8) { // Backspace
+                    if (currentLine.length > 0) {
+                        currentLine = currentLine.slice(0, -1);
+                        term.write('\b \b');
+                    }
+                } else if (printable) {
+                    currentLine += key;
+                    term.write(key);
+                }
+            });
+        }
+
+        async function executeCommand(command) {
+            console.log('Executing command:', command);
+            try {
+                if (command.trim().startsWith('cd ')) {
+                    const newDir = command.trim().slice(3);
+                    const result = await invoke('change_directory', { 
+                        connectionInfo: currentConnection, 
+                        newPath: newDir,
+                        currentPath: currentWorkingDirectory
+                    });
+                    if (result.success) {
+                        currentWorkingDirectory = result.newPath;
+                        term.writeln(`Changed directory to: ${currentWorkingDirectory}`);
+                    } else {
+                        term.writeln(`Failed to change directory: ${result.error}`);
+                    }
+                } else {
+                    const result = await invoke('execute_remote_shell', { 
+                        connectionInfo: currentConnection, 
+                        command: command,
+                        workingDirectory: currentWorkingDirectory
+                    });
+                    
+                    const cleanResult = result.replace(/^\s+|\s+$/g, '').replace(/\n\s+/g, '\n');
+                    const lines = cleanResult.split('\n');
+                    
+                    for (const line of lines) {
+                        term.writeln(line);
+                    }
+                }
+            } catch (error) {
+                console.error('Error executing command:', error);
+                term.writeln('Error: ' + error);
+            }
+            term.write(`\r\n${currentWorkingDirectory}$ `);
+        }
+    </script>
+</body>
+</html>

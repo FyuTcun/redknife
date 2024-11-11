@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remote Files</title>
+    <style>
+        #fileList {
+            list-style-type: none;
+            padding: 0;
+        }
+        #fileList li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Remote Files</h1>
+    <h3>注：点击文件夹以进入文件夹</h3>
+    <p>当前目录: <span id="currentPath">/</span></p>
+    <input type="file" id="fileUpload" style="display:none;">
+    <button id="uploadButton">上传文件</button>
+    
+    <!-- wget 下载功能 -->
+    <div>
+        <input type="text" id="remoteFilePath" placeholder="Remote file path">
+        <input type="text" id="localFilePath" placeholder="Local file path">
+        <button id="wgetDownloadButton">Wget下载</button>
+    </div>
+
+    <ul id="fileList"></ul>
+
+    <script src="file.js"></script>
+</body>
+</html>

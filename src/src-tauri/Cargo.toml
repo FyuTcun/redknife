@@ -1,0 +1,25 @@
+[package]
+name = "redknife"
+version = "0.0.0"
+description = "redrock"
+authors = ["you"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+tauri-build = { version = "1", features = [] }
+
+[dependencies]
+tauri = { version = "1", features = ["shell-open"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+reqwest = { version = "0.11", features = ["json"] }
+base64 = "0.13.0"
+rand = "0.8.5"
+chrono = "0.4"
+encoding_rs = "0.8"
+
+[features]
+# This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
+custom-protocol = ["tauri/custom-protocol"]

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>新建shell</title>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <form id="connectionForm">
+        &nbsp;&nbsp;url地址&nbsp;
+        <input type="url" id="url" placeholder="URL" value="http://" required>
+        <br>
+        连接密码
+        <input type="text" id="password" placeholder="(只支持POST)" required>
+        <br>
+        语言类型
+        <select id="language">
+            <option value="asp" selected>ASP</option>
+            <option value="aspx" selected>ASPX</option>
+            <option value="php" selected>PHP</option>
+            <option value="jsp">JSP</option>
+        </select>
+        <br>
+        编码类型 
+        <select id="encoding">
+            <option value="UTF-8" selected>UTF-8</option>
+            <option value="GBK">GBK</option>
+            <option value="BIG5">BIG5</option>
+            <option value="GB2312">GB2312</option>
+            <option value="Euc-KR">Euc-KR</option>
+            <option value="Euc-JP">Euc-JP</option>
+            <option value="Shift_JIS">Shift_JIS</option>
+            <option value="ISO-8859-1">ISO-8859-1</option>
+            <option value="Windows-874">Windows-874</option>
+            <option value="Windows-1251">Windows-1251</option>
+        </select>
+        <br>
+        &nbsp;&nbsp;编码器&nbsp;&nbsp; 
+        <select id="encoder">
+            <option value="default" >default</option>
+            <option value="base64">base64</option>
+            <option value="chr">chr</option>
+            <option value="chr16">chr16</option>
+            <option value="rot13">rot13</option>
+        </select>
+        <br>
+        &nbsp;&nbsp;解码器&nbsp;&nbsp;
+        <select id="decoder">
+            <option value="default">default</option>
+            <option value="base64">base64</option>
+            <option value="rot13">rot13</option>
+        </select>
+        <br>
+        <button type="submit">Submit</button>
+    </form>
+
+
+    <script>
+    const { invoke } = window.__TAURI__.tauri;
+    document.getElementById('connectionForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    console.log('Form submitted');
+    const formData = {
+        id: Date.now().toString(),
+        url: document.getElementById('url').value,
+        password: document.getElementById('password').value,
+        language: document.getElementById('language').value,
+        encoding: document.getElementById('encoding').value,
+        encoder: document.getElementById('encoder').value,
+        decoder: document.getElementById('decoder').value
+    };
+    console.log('Form data:', formData);
+    try {
+        await invoke('save_connection_info', { info: formData });
+        console.log('Connection info saved successfully');
+        alert('Connection info saved successfully!');
+        window.close();
+    } catch (error) {
+        console.error('Error saving connection info:', error);
+        alert('Failed to save connection info. Error: ' + error);
+    }
+});
+    </script>
+</body>
+</html>
